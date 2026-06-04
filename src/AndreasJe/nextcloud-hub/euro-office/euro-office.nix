@@ -13,7 +13,7 @@
 # Product: Euro-Office DocumentServer (collaborative document editing)
 #
 # Architecture:
-# - Single Podman container (ghcr.io/euro-office/documentserver:latest)
+# - Single Podman container (ghcr.io/euro-office/documentserver:latest, pinned in nix)
 # - Container bundles Nginx, PostgreSQL, Redis, RabbitMQ, DocService,
 #   FileConverter, AdminPanel, and an example app internally
 # - Only port 80 (Nginx) is exposed to the host; all other ports are internal
@@ -25,11 +25,6 @@
 
 { config, lib, pkgs, modulesPath, system, ... }:
 
-let
-  # Image is sourced from euro-office.json — change it there
-  moduleConfig = builtins.fromJSON (builtins.readFile ./euro-office.json);
-  documentServerImage = moduleConfig.containerImage;
-in
 {
   # ============================================================================
   # IMPORTS
@@ -60,7 +55,7 @@ in
   # NETWORKING
   # ============================================================================
 
-  networking.hostName = lib.mkDefault moduleConfig.vmname;
+  networking.hostName = lib.mkDefault "euro-office";
   networking.networkmanager.enable = true;
   # Match ethernet by type, not interface name (ens18/eth0/enp0s18 varies)
   networking.networkmanager.ensureProfiles.profiles.tappaas-ethernet = {
@@ -93,7 +88,7 @@ in
   # TIME ZONE
   # ============================================================================
 
-  time.timeZone = lib.mkDefault moduleConfig.timeZone;
+  time.timeZone = lib.mkDefault "UTC";
 
   # ============================================================================
   # USERS & SECURITY
@@ -204,13 +199,12 @@ EOF
   # ============================================================================
 
   virtualisation.oci-containers.containers."euro-office" = {
-    image = documentServerImage;
+    image = "ghcr.io/euro-office/documentserver:latest";
 
-    # Non-secret environment variables set directly
     environment = {
-      ALLOW_PRIVATE_IP_ADDRESS = "true";                      # Allows callbacks to internal IPs (testing)
-      EXAMPLE_ENABLED          = moduleConfig.exampleEnabled; # Controlled via euro-office.json
-      ADMINPANEL_ENABLED       = "true";                      # Enables the admin panel
+      ALLOW_PRIVATE_IP_ADDRESS = "true";
+      EXAMPLE_ENABLED          = "false";
+      ADMINPANEL_ENABLED       = "true";
     };
 
     # Secrets (JWT_SECRET) loaded from the auto-generated env file

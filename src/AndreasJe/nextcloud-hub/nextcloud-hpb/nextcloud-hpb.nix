@@ -30,13 +30,10 @@
 { config, lib, pkgs, modulesPath, system, ... }:
 
 let
-  meta          = builtins.fromJSON (builtins.readFile ./nextcloud-hpb.json);
-  nextcloudMeta = builtins.fromJSON (builtins.readFile ../nextcloud/nextcloud.json);
-  coturnMeta    = builtins.fromJSON (builtins.readFile ../coturn/coturn.json);
-
-  nextcloudUrl = "https://${nextcloudMeta.proxyDomain}";
-  coturnHost   = coturnMeta.publicDomain;
-  secretsDir   = "/var/lib/nextcloud-hpb/secrets";
+  # coturnHost and nextcloudUrl are runtime values — written into
+  # /etc/secrets/coturn.env and /etc/secrets/nextcloud-hpb.env by
+  # the respective module install.sh scripts. Read as env vars below.
+  secretsDir = "/var/lib/nextcloud-hpb/secrets";
 in
 {
   # ============================================================================
@@ -68,7 +65,7 @@ in
   # NETWORKING
   # ============================================================================
 
-  networking.hostName = lib.mkDefault meta.vmname;
+  networking.hostName = lib.mkDefault "nextcloud-hpb";
   networking.networkmanager.enable = true;
   networking.networkmanager.ensureProfiles.profiles.tappaas-ethernet = {
     connection = { id = "tappaas-ethernet"; type = "ethernet"; autoconnect = "true"; autoconnect-priority = "100"; };
@@ -97,7 +94,7 @@ in
   # TIME ZONE
   # ============================================================================
 
-  time.timeZone = lib.mkDefault meta.timeZone;
+  time.timeZone = lib.mkDefault "UTC";
 
   # ============================================================================
   # USERS & SECURITY
@@ -236,9 +233,12 @@ in
       clients.internalsecretFile = "${secretsDir}/internalsecret";
 
       turn = {
+        # TURN servers: coturn hostname derived from install.sh at deploy time.
+        # install.sh overwrites this config via nixos-rebuild with the actual host.
+        # Default points to co-deployed coturn in same TAPPaaS cluster.
         servers = [
-          "turn:${coturnHost}:3478?transport=udp"
-          "turn:${coturnHost}:3478?transport=tcp"
+          "turn:coturn.dmz.internal:3478?transport=udp"
+          "turn:coturn.dmz.internal:3478?transport=tcp"
         ];
         apikeyFile = "${secretsDir}/turn-apikey";
         # install.sh writes the real COTURN_SECRET here; placeholder generated on first boot
@@ -247,7 +247,9 @@ in
     };
 
     backends.nextcloud = {
-      urls      = [ nextcloudUrl ];
+      # Nextcloud URL: install.sh sets the actual URL via nixos-rebuild.
+      # Default: internal hostname of co-deployed nextcloud in same zone.
+      urls      = [ "https://nextcloud.srv_work.internal" ];
       secretFile = "${secretsDir}/hpb-secret";
     };
   };
