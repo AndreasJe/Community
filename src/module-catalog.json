@@ -1,0 +1,89 @@
+{
+    "description": "TAPPaaS Community Module Registry",
+    "applicationModules": [
+        {
+            "moduleName": "nextcloud",
+            "repo": "community",
+            "moduleJson": "src/AndreasJe/nextcloud-hub/nextcloud/nextcloud.json",
+            "vmid": 340,
+            "stack": "productivity",
+            "category": "files",
+            "status": "beta"
+        },
+        {
+            "moduleName": "coturn",
+            "repo": "community",
+            "moduleJson": "src/AndreasJe/nextcloud-hub/coturn/coturn.json",
+            "vmid": 341,
+            "stack": "productivity",
+            "category": "voip",
+            "status": "beta"
+        },
+        {
+            "moduleName": "nextcloud-hpb",
+            "repo": "community",
+            "moduleJson": "src/AndreasJe/nextcloud-hub/nextcloud-hpb/nextcloud-hpb.json",
+            "vmid": 342,
+            "stack": "productivity",
+            "category": "voip",
+            "status": "beta"
+        },
+        {
+            "moduleName": "euro-office",
+            "repo": "community",
+            "moduleJson": "src/AndreasJe/nextcloud-hub/euro-office/euro-office.json",
+            "vmid": 343,
+            "stack": "productivity",
+            "category": "office",
+            "status": "beta"
+        },
+        {
+            "moduleName": "unifi",
+            "repo": "community",
+            "moduleJson": "src/ErikDaniel007/network/unifi/unifi.json",
+            "vmid": 810,
+            "stack": "infrastructure",
+            "category": "network",
+            "status": "beta"
+        },
+        {
+            "moduleName": "wordpress",
+            "repo": "community",
+            "moduleJson": "src/AndreasJe/wordpress/wordpress.json",
+            "vmid": 620,
+            "stack": "productivity",
+            "category": "cms",
+            "status": "beta"
+        },
+        {
+            "moduleName": "alfen",
+            "repo": "community",
+            "moduleJson": "src/ErikDaniel007/energy/alfen/alfen.json",
+            "vmid": null,
+            "stack": "home-automation",
+            "category": "ev-charging",
+            "status": "beta"
+        },
+        {
+            "moduleName": "sonos",
+            "repo": "community",
+            "moduleJson": "src/ErikDaniel007/entertainment/sonos/sonos.json",
+            "vmid": null,
+            "stack": "entertainment",
+            "category": "audio",
+            "status": "beta"
+        },
+        {
+            "moduleName": "synology",
+            "repo": "community",
+            "moduleJson": "src/ErikDaniel007/storage/synology/synology.json",
+            "vmid": null,
+            "stack": "storage",
+            "category": "nas",
+            "status": "beta"
+        }
+    ],
+    "foundationModules": [],
+    "proxmoxTemplates": [],
+    "testModules": []
+}
