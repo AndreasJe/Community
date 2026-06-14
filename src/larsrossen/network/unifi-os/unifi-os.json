@@ -1,0 +1,44 @@
+{
+  "description": "UniFi OS Server — self-hosted UniFi OS (Network etc.) on Debian 13; the management plane that adopts UniFi switches and APs (ADR-008 Stage 5, #339)",
+  "version": "0.1.0",
+  "appVersion": "5.0.6",
+  "releaseDate": "2026-06-14",
+  "maintainer": "@larsrossen",
+  "status": "Development",
+  "vmname": "unifi-os",
+  "vmid": 811,
+  "vmtag": "TAPPaaS,Community,Network,Mgmt",
+  "zone0": "mgmt",
+  "ports": [
+    { "port": 11443, "protocol": "TCP", "description": "UniFi OS console UI + API (HTTPS, /proxy/network)" },
+    { "port": 8443,  "protocol": "TCP", "description": "Network application HTTPS" },
+    { "port": 8444,  "protocol": "TCP", "description": "Network application HTTPS (secondary)" },
+    { "port": 8080,  "protocol": "TCP", "description": "Device communication (inform)" },
+    { "port": 6789,  "protocol": "TCP", "description": "Mobile speed test" },
+    { "port": 3478,  "protocol": "UDP", "description": "STUN (device discovery)" },
+    { "port": 10001, "protocol": "UDP", "description": "Device discovery" }
+  ],
+  "dependsOn": ["cluster:vm", "templates:debian", "backup:vm", "firewall:proxy"],
+  "provides": [],
+  "config": {
+    "cluster:vm": {
+      "bios": "seabios",
+      "ostype": "l26",
+      "cores": 4,
+      "memory": "6144",
+      "diskSize": "50G",
+      "storage": "tanka1",
+      "imageType": "img",
+      "image": "debian-13-generic-amd64.qcow2",
+      "imageLocation": "https://cdimage.debian.org/cdimage/cloud/trixie/latest",
+      "cloudInit": "true",
+      "bridge0": "lan"
+    },
+    "firewall:proxy": {
+      "proxyPort": 11443,
+      "proxyUpstreamTls": true,
+      "proxyUpstreamHttp1": true,
+      "proxyAllowedZones": ["mgmt", "home", "work"]
+    }
+  }
+}

@@ -47,6 +47,15 @@
             "status": "beta"
         },
         {
+            "moduleName": "unifi-os",
+            "repo": "community",
+            "moduleJson": "src/larsrossen/network/unifi-os/unifi-os.json",
+            "vmid": 811,
+            "stack": "infrastructure",
+            "category": "network",
+            "status": "Development"
+        },
+        {
             "moduleName": "wordpress",
             "repo": "community",
             "moduleJson": "src/AndreasJe/wordpress/wordpress.json",
