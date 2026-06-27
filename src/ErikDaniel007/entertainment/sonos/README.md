@@ -8,14 +8,13 @@ sessions from the Sonos app, AirPlay 2, or Home Assistant.
 
 | Capability | Access from | How |
 |---|---|---|
-| Sonos app control | Home WiFi | Sonos S2 app — auto-discovered via mDNS relay |
+| Sonos app control | Home WiFi | Sonos S2 app — speakers auto-discovered |
 | AirPlay 2 streaming | Home WiFi | Any AirPlay-capable device (iPhone, Mac, iPad) |
 | Home Assistant integration | Home Assistant | Built-in Sonos integration, no HACS needed |
 
-## What this module does (and does not)
+## What this module installs
 
-This is a **policy-only firewall module** — it opens ports and configures mDNS/SSDP relay
-for the entire `iotCloud` network alias. There is **no per-speaker VM or config**.
+Install once — it configures the network plumbing for all speakers on your iotCloud VLAN. No per-speaker VM or configuration needed.
 
 **Included:**
 - Firewall pass rules: ports 1400/1443/4070/4444/7000 TCP, 7000–7100 UDP, SSDP 1900 UDP
@@ -26,14 +25,21 @@ for the entire `iotCloud` network alias. There is **no per-speaker VM or config*
 - Sonos account or music service subscriptions (vendor responsibility)
 - Speaker grouping / stereo pair configuration (Sonos S2 app, post-install)
 - Static DHCP reservations (operator responsibility — required, see INSTALL.md)
-- iotCloud SSID WiFi configuration (network operator responsibility — required, see below)
+- iotCloud SSID WiFi configuration (network operator responsibility — required, see INSTALL.md)
 
-## Network transport — operational findings (TAR + ADR)
+## Requirements
+
+- One or more Sonos S2-compatible speakers on the `iotCloud` VLAN
+- **Static DHCP reservation** per speaker (MAC → fixed IP) via `dns-manager add --mac`
+- iotCloud SSID configured — see INSTALL.md Prerequisites §1
+- Home WiFi zone (`home`) for direct app and AirPlay access
+
+## Network transport
 
 > **Summary:** reliable Sonos on a multi-floor UniFi network requires a deliberate choice between
 > two transports. Mixing them causes the "product not connected" / split-brain failure class.
 
-Two viable end-states (from TAR assessment):
+Two viable end-states:
 
 | End-state | How | When to choose |
 |---|---|---|
@@ -42,49 +48,20 @@ Two viable end-states (from TAR assessment):
 
 **Pick one. Never mix** (one wired anchor + WiFi-only mesh across floors = worst-of-both; causes split-brain).
 
-For the iotCloud SSID, these settings are **required** regardless of transport choice:
-
-| Setting | Required value |
-|---|---|
-| Network type | **Corporate** — Guest isolation breaks Sonos peer-to-peer |
-| Fast roaming (802.11r) | **OFF** |
-| BSS Transition / Band Steering | **OFF** |
-| Multicast Enhancement (IGMPv3 → unicast) | **ON** — key fix for cross-AP discovery |
-| WPA mode | **WPA2-AES (CCMP) only** — no WPA3 or mixed; legacy Sonos incompatible |
-| IGMP snooping + querier | **ON** |
-| 2.4 GHz | Enabled, HT20, non-overlapping channels per floor (1/6/11) |
-
-Full UniFi settings profile and STP guidance: see **TAR** linked below.
-
-## Requirements
-
-- One or more Sonos S2-compatible speakers on the `iotCloud` VLAN
-- **Static DHCP reservation** per speaker (MAC → fixed IP) via `dns-manager add --mac`
-- iotCloud SSID configured per the table above
-- Home WiFi zone (`home`) for direct app and AirPlay access
+Required SSID configuration and full decision guide: see [INSTALL.md](./INSTALL.md) Prerequisites.
 
 ## Known limitation
 
 AirPlay RAOP requires UDP 7000–7100 in addition to TCP 7000. Without the UDP range,
 audio streams drop out after ~10 seconds. Both are included automatically in this module.
 
-## Dependencies
+## External references
 
-| Depends on | Purpose |
-|---|---|
-| `firewall:rules` | Compiles firewall pass rules from this module's port declarations |
-| `firewall:discovery` | mDNS + SSDP relay so Sonos app and HA find speakers across VLANs |
-
-## External references — audit sources
-
-These are the primary cited sources behind the TAR recommendation and SSID settings profile.
-Read them before tuning network settings for Sonos:
+Read these before tuning network settings for Sonos:
 
 - [Best Practices for Sonos Devices — Ubiquiti Help Center](https://help.ui.com/hc/en-us/articles/18930473041047-Best-Practices-for-Sonos-Devices)
 - [Sonos + UniFi: Best Practices & Recommended Settings — Sonos Community](https://en.community.sonos.com/tutorials-and-how-to-s-229149/sonos-unifi-best-practices-recommended-settings-6933597/)
 - [Sonos and the Spanning Tree Protocol — Sonos Community](https://en.community.sonos.com/troubleshooting-228999/sonos-and-the-spanning-tree-protocol-16973) (SonosNet STP requirements)
 - [SoCo — Python Sonos controller library](https://github.com/SoCo/SoCo) (ZoneGroupTopology / topology health automation)
-- TAR: `delbuschy/operations/entertainment/sonos/doc/sonos-network-transport-tar.md` (full option analysis + UniFi profile)
-- ADR: `delbuschy/operations/entertainment/sonos/adr/ADR-0001-sonos-transport.md` (adopted end-state + implementation learnings)
 
 For installation steps see [INSTALL.md](./INSTALL.md).

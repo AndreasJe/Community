@@ -1,13 +1,13 @@
 {
   "description": "Sonos speaker system — policy-only module for firewall rules (no VM)",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "releaseDate": "2026-06-27",
   "maintainer": "@ErikDaniel007",
   "status": "Testing",
   "location": "/home/tappaas/Community/src/ErikDaniel007/entertainment/sonos",
   "vmname": "sonos",
   "vmtag": "TAPPaaS,Community,Entertainment,Hardware",
-  "zone0": "iot-cloud",
+  "zone0": "iotCloud",
   "aliasType": "network",
   "firewallType": "opnsense",
   "ports": [

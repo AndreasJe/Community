@@ -1,12 +1,46 @@
 # Sonos — Installation
 
+## Transport mode decision
+
+**Decide this before touching cables or running the installer. You cannot change modes from the Sonos app.**
+
+#### How modes work
+
+A Sonos speaker's transport mode is determined by its Ethernet cable — not by any app setting:
+
+- **No Ethernet cable** → WiFi mode. The speaker joins your iotCloud SSID like any other wireless device.
+- **Ethernet cable plugged in** → SonosNet anchor. The speaker creates a proprietary 2.4 GHz mesh and every other SonosNet-capable speaker in range automatically tries to join it.
+
+#### Which should I choose?
+
+| | All-WiFi | Multi-anchor SonosNet |
+|---|---|---|
+| **New Sonos (Era/Move/Roam)** | ✅ Works | ❌ These are WiFi-only — they cannot join SonosNet |
+| **Multi-floor reliability** | ✅ Strong with an AP per floor | ⚠️ 2.4 GHz mesh degrades over floors and walls |
+| **Future-proof** | ✅ Yes — every current + future Sonos model | ❌ SonosNet is deprecated by Sonos |
+| **Cabling needed** | None | Ethernet to ≥1 speaker per floor |
+| **Extra switch config** | None | Classic STP must be enabled in UniFi; default RSTP is different and causes packet storms with Sonos |
+
+> **SonosNet-capable models:** One, One SL, Play:1/3/5, SYMFONISK, Beam (Gen 1), Arc, Five, Sub, Port, Amp.
+> **WiFi-only (no SonosNet):** Era 100, Era 300, Move 2, Roam, Roam SL — if you own or plan to add any of these, choose all-WiFi.
+
+**Choose all-WiFi if:** you have a WiFi AP on each floor, you might add newer Sonos models, or you want lower long-term maintenance.
+
+**Choose multi-anchor SonosNet if:** Ethernet is already pulled to 2+ speakers on different floors, your entire fleet is legacy SonosNet-capable, and you are not planning to add Era/Move/Roam.
+
+#### ⚠️ Never mix — one wired anchor is the dangerous state
+
+If you plug Ethernet into only one speaker (for example, a Port in the living room), that speaker becomes the **sole** SonosNet anchor for the whole house. Every other speaker on every floor then tries to mesh to it over 2.4 GHz. Across floors or through walls, the signal degrades. Speakers that cannot reliably reach the single anchor keep dropping in and out — the app shows "product not connected" even while some music plays. This is split-brain, and it is the most common Sonos failure pattern on multi-floor homes.
+
+The safe states are: **0 wired speakers** (all-WiFi) or **≥1 wired speaker per floor** (multi-anchor SonosNet, with STP). One cable anywhere in the house is the worst position.
+
+---
+
 ## Prerequisites
 
 ### 1. iotCloud SSID — required settings
 
-Apply these settings to the SSID serving `iotCloud` (VLAN 10.4.20.0/24) in UniFi Network
-**before** adding speakers. Wrong SSID settings cause split-brain topology regardless of
-whether the firewall module is installed correctly.
+Apply these settings to the SSID serving your IoT zone (example: `iotCloud`, VLAN 10.4.20.0/24) in UniFi Network **before** adding speakers. Wrong SSID settings cause split-brain topology regardless of whether the firewall module is installed correctly.
 
 | Setting | Value | Why |
 |---|---|---|
@@ -23,12 +57,16 @@ whether the firewall module is installed correctly.
 
 Source: [Ubiquiti Help Center — Best Practices for Sonos Devices](https://help.ui.com/hc/en-us/articles/18930473041047-Best-Practices-for-Sonos-Devices)
 
-### 2. Transport mode decision
+### 2. Physical setup
 
-Before installing speakers, decide: **all-WiFi** or **multi-anchor SonosNet**? See README.md.
-Never run one wired SonosNet anchor + everything else on WiFi across floors — this is the
-split-brain configuration. Once decided, install speakers in that mode before adding DHCP
-reservations.
+Apply your transport decision now, before adding DHCP reservations or running the installer.
+
+| Target | Action |
+|---|---|
+| All-WiFi | Unplug Ethernet from every speaker, then power-cycle each one |
+| Multi-anchor SonosNet | Plug Ethernet into ≥1 speaker per floor; set those switch ports to the `iotCloud` port profile in UniFi; power-cycle each wired speaker |
+
+**In UniFi Network:** Devices → [your switch] → Ports tab → click the port → Port Profile → set to `iotCloud`. Without this, the wired speaker is on the wrong VLAN and cannot reach the rest of the fleet.
 
 ### 3. Static DHCP reservations — one per speaker
 
@@ -54,18 +92,24 @@ Get the MAC address for each speaker: Sonos S2 app → Settings → [speaker] �
 dns-manager --no-ssl-verify list | grep sonos
 ```
 
-Each entry should show `hostname.iotCloud.internal -> IP`. If hardware_addr shows as None
-in the Python library's list_hosts(), verify via OPNsense UI (Services → Dnsmasq DNS & DHCP →
-Leases — entries tagged "static" with the correct MAC confirm the reservation is active).
+Each entry should show `hostname.iotCloud.internal -> IP`. To confirm in the UI:
+OPNsense → Services → Dnsmasq DNS & DHCP → Leases — entries tagged **static** with the correct MAC confirm the reservation is active.
 
 Speakers pick up reserved IPs on next DHCP renewal (T1 = 50% of lease time, typically ~12h)
 or when power-cycled.
 
+---
+
 ## Install
 
 ```bash
-cd /home/tappaas/Community/src/ErikDaniel007/entertainment/sonos
 install-module.sh sonos
+```
+
+The default zone is `iotCloud`. If your deployment uses a different zone name, pass the override:
+
+```bash
+install-module.sh sonos --zone0 <your-zone>
 ```
 
 This configures:
@@ -73,12 +117,27 @@ This configures:
 - mDNS relay: `iotCloud` ↔ `home` ↔ `srvHome`
 - SSDP 1900 relay: `srvHome` → `iotCloud` (HA rediscovery after restart)
 
-## Post-install
+---
 
-### Topology verify (SOAP check)
+## Verify
 
-All speakers must report the same full household — this is the definitive health check.
-Run from the TAPPaaS host:
+### 1. Sonos app (primary check)
+
+Open the Sonos S2 app → **Settings → System → About My System**.
+All speakers must be listed. If any are missing, stop and see Troubleshooting before continuing.
+
+### 2. Module check
+
+```bash
+test-module.sh sonos
+```
+
+Also verify manually: open the Sonos S2 app on home WiFi — all speakers visible and playable.
+AirPlay: from an iPhone or Mac on home WiFi, all speakers should appear as AirPlay targets.
+
+### 3. Deep topology check
+
+Run this when step 1 returns an unexpected count or speakers drop intermittently:
 
 ```bash
 python3 - <<'EOF'
@@ -106,28 +165,14 @@ for ip, name in FLEET.items():
 EOF
 ```
 
-Expected: all speakers return the full fleet count. Any speaker returning fewer = split-brain
-(see Troubleshooting below).
+Expected: every speaker returns the full fleet count. Any speaker returning fewer = split-brain (see Troubleshooting).
 
-### Home Assistant
+### 4. Home Assistant
 
 Go to Settings → Devices & Services → Add integration → Sonos. Speakers auto-discover;
 no manual host entry needed. Verify entity count matches fleet size.
 
-## Verification
-
-```bash
-test-module.sh sonos
-```
-
-Manual checks:
-
-| Check | Expected |
-|---|---|
-| Sonos S2 app on home WiFi | All speakers visible and playable |
-| AirPlay from iPhone/Mac on home WiFi | All speakers appear as AirPlay targets |
-| HA `media_player.sonos_*` entities | Available, count = fleet size |
-| ZoneGroupTopology SOAP (see above) | Every speaker reports full fleet |
+---
 
 ## Troubleshooting
 
@@ -143,8 +188,9 @@ Checklist:
 3. Check iotCloud SSID settings — especially Multicast Enhancement ON and Fast Roaming OFF
 4. If on SonosNet with only one wired anchor across multiple floors: this is the root cause —
    add a second wired anchor on the floor with the failing speaker, OR migrate all speakers to
-   WiFi mode (see README.md transport section and TAR)
-5. Full re-triage: `doc/sonos-network-transport-tar.md` §7 verification steps
+   WiFi mode (see Transport mode decision above and README.md)
+5. Full re-triage: run the deep topology check (Verify §3 above); consult the Ubiquiti
+   and Sonos Community sources in README.md external references
 
 **Sonos app does not find speakers from home WiFi**
 Verify mDNS relay: `firewall:discovery test-service.sh sonos` — relay should be present.
