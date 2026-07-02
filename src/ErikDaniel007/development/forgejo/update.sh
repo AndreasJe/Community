@@ -45,12 +45,20 @@ info "Copying forgejo.nix to ${VM_HOST}…"
 scp ${SSH_OPTS} "${SCRIPT_DIR}/forgejo.nix" \
     "tappaas@${VM_HOST}:/tmp/forgejo.nix"
 
+info "Ensuring /etc/nixos/hardware-configuration.nix exists…"
+# shellcheck disable=SC2029
+ssh ${SSH_OPTS} "tappaas@${VM_HOST}" "
+    test -f /etc/nixos/hardware-configuration.nix && exit 0
+    sudo nixos-generate-config --show-hardware-config 2>/dev/null \
+      | sudo tee /etc/nixos/hardware-configuration.nix >/dev/null
+"
+
 info "Installing configuration…"
 # shellcheck disable=SC2029
 ssh ${SSH_OPTS} "tappaas@${VM_HOST}" "
     set -euo pipefail
     sudo cp /tmp/forgejo.nix /etc/nixos/configuration.nix
-    sudo nixos-rebuild switch 2>&1
+    sudo nixos-rebuild switch -I nixos-config=/etc/nixos/configuration.nix 2>&1
 "
 info "  NixOS rebuild — OK"
 

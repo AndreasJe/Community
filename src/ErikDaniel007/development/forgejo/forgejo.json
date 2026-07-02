@@ -1,7 +1,7 @@
 {
   "description": "Forgejo — self-hosted Git service and DevOps platform (Gitea fork)",
   "version": "0.1.0",
-  "appVersion": "9.0.3",
+  "appVersion": "15.0.2",
   "releaseDate": "2026-06-01",
   "maintainer": "@ErikDaniel007",
   "status": "Development",
