@@ -4,7 +4,6 @@
   "releaseDate": "2026-05-14",
   "maintainer": "@AndreasJe",
   "status": "Development",
-  "location": "src/AndreasJe/nextcloud-hub/nextcloud-hpb",
   "vmname": "nextcloud-hpb",
   "vmid": 342,
   "vmtag": "TAPPaaS,App",
@@ -19,21 +18,18 @@
   "storage": "tanka1",
   "imageType": "clone",
   "image": "8080",
-  "cloudInit": "true",
+  "cloudInit": true,
   "bridge0": "lan",
   "zone0": "srv",
   "proxyDomain": "hpb.example.com",
   "proxyPort": 8080,
-  "timeZone": "Europe/Amsterdam",
   "dependsOn": [
     "cluster:vm",
     "templates:nixos",
     "backup:vm",
     "firewall:proxy",
-    "nextcloud:vm",
-    "coturn:vm"
+    "nextcloud:nextcloud",
+    "coturn:turn"
   ],
-  "provides": [
-    "vm"
-  ]
+  "provides": []
 }

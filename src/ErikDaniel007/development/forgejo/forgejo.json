@@ -1,14 +1,14 @@
 {
   "description": "Forgejo — self-hosted Git service and DevOps platform (Gitea fork)",
   "version": "0.1.0",
-  "appVersion": "9.0.3",
+  "appVersion": "15.0.2",
   "releaseDate": "2026-06-01",
   "maintainer": "@ErikDaniel007",
-  "status": "Development",
+  "status": "Testing",
   "location": "/home/tappaas/Community/src/ErikDaniel007/development/forgejo",
   "vmname": "forgejo",
   "vmid": 350,
-  "vmtag": "TAPPaaS,Community,Development",
+  "vmtag": "TAPPaaS,Community,Testing",
   "node": "tappaas2",
   "cores": 2,
   "memory": "2048",
@@ -17,23 +17,42 @@
   "imageType": "clone",
   "image": "8080",
   "bridge0": "lan",
-  "zone0": "srv_work",
+  "zone0": "srvWork",
   "firewallType": "opnsense",
   "proxyPort": 3000,
-  "proxyAllowedZones": ["work", "mgmt"],
+  "proxyAllowedZones": [
+    "work",
+    "mgmt"
+  ],
   "_comment_ssh_nat": "SSH git access (port 22) requires a NAT rule on an alternative external port (e.g. 2222). Architect decision: declare ingress pinhole from dmz port 22 OR add a host-level SSH-forwarding rule. Not shipped by default — add in INSTALL.md §Advanced when NAT port is decided.",
   "ports": [
-    { "port": 3000, "protocol": "TCP", "description": "Web UI and REST API" },
-    { "port": 22,   "protocol": "TCP", "description": "SSH git access" }
+    {
+      "port": 3000,
+      "protocol": "TCP",
+      "description": "Web UI and REST API"
+    },
+    {
+      "port": 22,
+      "protocol": "TCP",
+      "description": "SSH git access"
+    }
   ],
   "ingress": [
     {
       "from": "dmz",
-      "ports": [3000],
+      "ports": [
+        3000
+      ],
       "protocol": "TCP",
       "description": "Caddy reverse proxy forwards HTTPS traffic to Forgejo web UI"
     }
   ],
-  "dependsOn": ["cluster:vm", "backup:vm", "firewall:proxy", "firewall:rules"],
-  "provides": []
+  "dependsOn": [
+    "cluster:vm",
+    "backup:vm",
+    "firewall:proxy",
+    "firewall:rules"
+  ],
+  "provides": [],
+  "type": "vm"
 }

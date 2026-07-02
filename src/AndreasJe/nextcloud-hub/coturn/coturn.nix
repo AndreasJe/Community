@@ -37,7 +37,6 @@ let
     coturnPkg = pkgs.coturn;
   };
 
-  meta = builtins.fromJSON (builtins.readFile ./coturn.json);
 in
 {
   # ============================================================================
@@ -69,7 +68,7 @@ in
   # NETWORKING
   # ============================================================================
 
-  networking.hostName = lib.mkDefault meta.vmname;
+  networking.hostName = lib.mkDefault "coturn";
   networking.networkmanager.enable = true;
   networking.networkmanager.ensureProfiles.profiles.tappaas-ethernet = {
     connection = { id = "tappaas-ethernet"; type = "ethernet"; autoconnect = "true"; autoconnect-priority = "100"; };
@@ -105,7 +104,7 @@ in
   # TIME ZONE
   # ============================================================================
 
-  time.timeZone = lib.mkDefault meta.timeZone;
+  time.timeZone = lib.mkDefault "UTC";
 
   # ============================================================================
   # USERS & SECURITY
@@ -258,7 +257,7 @@ in
 listening-port=3478
 min-port=49152
 max-port=65535
-realm=${meta.publicDomain}
+realm=${config.networking.hostName}
 use-auth-secret
 static-auth-secret=$COTURN_SECRET
 no-cli
