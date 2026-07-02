@@ -4,11 +4,11 @@
   "appVersion": "15.0.2",
   "releaseDate": "2026-06-01",
   "maintainer": "@ErikDaniel007",
-  "status": "Development",
+  "status": "Testing",
   "location": "/home/tappaas/Community/src/ErikDaniel007/development/forgejo",
   "vmname": "forgejo",
   "vmid": 350,
-  "vmtag": "TAPPaaS,Community,Development",
+  "vmtag": "TAPPaaS,Community,Testing",
   "node": "tappaas2",
   "cores": 2,
   "memory": "2048",
@@ -53,5 +53,6 @@
     "firewall:proxy",
     "firewall:rules"
   ],
-  "provides": []
+  "provides": [],
+  "type": "vm"
 }
