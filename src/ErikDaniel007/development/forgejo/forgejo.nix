@@ -29,7 +29,7 @@ in
 
   # === Networking ===
   networking = {
-    hostName            = lib.mkDefault "forgejo";
+    hostName              = lib.mkDefault "forgejo";
     networkmanager.enable = true;
     # Match ethernet by type — interface name varies across clone generations
     networkmanager.ensureProfiles.profiles.tappaas-ethernet = {
@@ -42,8 +42,11 @@ in
       ipv4.method = "auto";
       ipv6 = { method = "auto"; addr-gen-mode = "default"; };
     };
-    # NixOS in-guest firewall — allow SSH, Forgejo web, and git-SSH
-    firewall.allowedTCPPorts = [ 22 3000 ];
+  };
+
+  networking.firewall = {
+    enable          = true;
+    allowedTCPPorts = [ 22 3000 ];
   };
 
   # Disable systemd-networkd (NetworkManager owns networking)
